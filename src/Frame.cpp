@@ -1,5 +1,6 @@
 #include "Frame.h"
 
+
 Frame::Frame() {
     chip8 = std::make_unique<Chip8>();
     tryToInitializeSDL();
@@ -27,23 +28,22 @@ void Frame::startLoop() {
     lastScreenUpdate = std::chrono::system_clock::now();
     lastChipExecution = std::chrono::system_clock::now();
     while(!quit) {
+        auto frameStarted = std::chrono::system_clock::now();
         while(SDL_PollEvent(&e)) {
             if(e.type == SDL_QUIT) {
                 quit = true;
             }
         }
 
-        auto now = std::chrono::system_clock::now();
-        
-        if(now - lastChipExecution 
-            > std::chrono::duration<float>(1/CHIP_CLOCK_SPEED)) {
-            chip8->doNextCycle();
-        }
+        chip8->doNextCycle();
 
-        if(now - lastScreenUpdate
+        if(std::chrono::system_clock::now() - lastScreenUpdate
             > std::chrono::duration<float>(1/SCREEN_REFRESH_FREQUENCY)) {
             screen->update(chip8->peek());
         }
+
+        std::this_thread::sleep_for(std::chrono::duration<float>(1/CHIP_CLOCK_SPEED)
+            - (std::chrono::system_clock::now() - frameStarted));
     }
 }
 

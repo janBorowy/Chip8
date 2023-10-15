@@ -9,6 +9,7 @@
 #include <string>
 #include <fstream>
 #include <stdexcept>
+#include <thread>
 
 #define WINDOW_WIDTH 640
 #define WINDOW_HEIGHT 320
