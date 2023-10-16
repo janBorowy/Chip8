@@ -4,6 +4,7 @@
 #include <vector>
 #include "Display.h"
 #include <memory>
+#include <stdexcept>
 
 constexpr unsigned int CHIP8_DISPLAY_WIDTH = 64;
 constexpr unsigned int CHIP8_DISPLAY_HEIGTH = 32;
@@ -14,6 +15,17 @@ constexpr unsigned int CHIP8_FONT_BEGINNING_ADDRES = 0x50;
 constexpr unsigned int CHIP8_MEMORY_SIZE = 4096;
 constexpr unsigned int CHIP8_MAX_PROGRAM_SIZE = 
     CHIP8_MEMORY_SIZE - CHIP8_PROGRAM_BEGINNING_ADDRESS;
+
+class InstructionNotImplemented : public std::runtime_error {
+    uint16_t opcode;
+    public:
+        InstructionNotImplemented(uint16_t opcode): runtime_error("Instruction has not been yet implemented") {
+            this->opcode = opcode;
+        }
+        uint16_t getOpcode() {
+            return opcode;
+        }
+};
 
 class Chip8 {
 
@@ -62,24 +74,40 @@ class Chip8 {
 
     void zeroCategoryHandler(uint16_t instruction);
     void jump(uint16_t instruction);
+    void callASubroutine(uint16_t instruction);
+    void skipEqualLiteral(uint16_t instruction);
+    void skipNotEqualLietral(uint16_t instruction);
+    void skipEqualRegisters(uint16_t instruction);
+    void skipNotEqualRegisters(uint16_t instruction);
+    void eightCategoryHandler(uint16_t instruction);
     void setXRegister(uint16_t instruction);
     void addXRegister(uint16_t instruction);
     void setIndex(uint16_t instruction);
     void draw(uint16_t instruction);
 
     void clearScreen();
+    void returnFromSubroutine();
+
+    void set(uint16_t instruction);
+    void binaryOr(uint16_t instruction);
+    void binaryAnd(uint16_t instruction);
+    void logicalXor(uint16_t instruction);
+    void add(uint16_t instruction);
+    void substract(uint16_t instruction);
+    void substractInverted(uint16_t instruction);
+    void shift(uint16_t instruction);
 
     static constexpr std::array<InstructionHandler, 16> handlers {
         &Chip8::zeroCategoryHandler,
         &Chip8::jump,
-        nullptr,
-        nullptr,
-        nullptr,
-        nullptr,
+        &Chip8::callASubroutine,
+        &Chip8::skipEqualLiteral,
+        &Chip8::skipNotEqualLietral,
+        &Chip8::skipEqualRegisters,
         &Chip8::setXRegister,
         &Chip8::addXRegister,
         nullptr,
-        nullptr,
+        &Chip8::skipNotEqualRegisters,
         &Chip8::setIndex,
         nullptr,
         nullptr,

@@ -36,6 +36,11 @@ void Chip8::doNextCycle() {
 
 void Chip8::execute(uint16_t instruction) {
     int handlerIdx = getHandlerIdx(instruction);
+
+    if(handlers[handlerIdx] == nullptr) {
+        throw InstructionNotImplemented(instruction);
+    }
+
     (this->*handlers[handlerIdx])(instruction);
 }
 
@@ -56,6 +61,8 @@ uint16_t Chip8::fetchInstruction () {
 void Chip8::zeroCategoryHandler(uint16_t instruction) {
     if (instruction == 0x00E0) {
         clearScreen();
+    } else if(instruction == 0x00EE) {
+        returnFromSubroutine();
     }
 }
 
@@ -63,9 +70,43 @@ void Chip8::clearScreen() {
     display->clear();
 }
 
+void Chip8::returnFromSubroutine() {
+    programCounter = stack.top();
+    stack.pop();
+}
+
 void Chip8::jump(uint16_t instruction) {
     int address = instruction & 0x0FFF;
     programCounter = address;
+}
+
+void Chip8::callASubroutine(uint16_t instruction) {
+    uint16_t address = instruction & 0x0FFF;
+    stack.push(programCounter);
+    programCounter = address;
+}
+
+void Chip8::skipEqualLiteral(uint16_t instruction) {
+    auto vx = getXRegister(instruction);
+    uint8_t val = instruction & 0x00FF;
+    if(val == vx)
+        programCounter += 2;
+}
+
+void Chip8::skipEqualRegisters(uint16_t instruction) {
+    auto vx = getXRegister(instruction);
+    auto vy = getYRegister(instruction);
+
+    if (vx == vy) {
+        programCounter += 2;
+    }
+}
+
+void Chip8::skipNotEqualLietral(uint16_t instruction) {
+    auto vx = getXRegister(instruction);
+    uint8_t val = instruction & 0x00FF;
+    if(val != vx)
+        programCounter += 2;
 }
 
 void Chip8::setXRegister(uint16_t instruction) {
@@ -76,6 +117,23 @@ void Chip8::setXRegister(uint16_t instruction) {
 void Chip8::addXRegister(uint16_t instruction) {
     int xIdx = getXIdx(instruction);
     variables[xIdx] += instruction & 0x00FF;
+}
+
+void Chip8::skipNotEqualRegisters(uint16_t instruction) {
+    auto vx = getXRegister(instruction);
+    auto vy = getYRegister(instruction);
+    if(vx != vy) {
+        programCounter += 2;
+    }
+}
+
+void Chip8::eightCategoryHandler(uint16_t instruction) {
+    uint8_t selector = instruction & 0x000F;
+
+    switch(selector) {
+        case 0x00:
+
+    }
 }
 
 void Chip8::setIndex(uint16_t instruction) {
@@ -119,3 +177,11 @@ uint8_t Chip8::getYRegister(uint16_t instruction) {
     int y = getYIdx(instruction);
     return variables[y];
 }
+
+void Chip8::set(uint16_t instruction) {}
+void Chip8::binaryOr(uint16_t instruction) {}
+void Chip8::binaryAnd(uint16_t instruction) {}
+void Chip8::logicalXor(uint16_t instruction) {}
+void Chip8::add(uint16_t instruction) {}
+void Chip8::substract(uint16_t instruction) {}
+void Chip8::substractInverted(uint16_t instruction) {}
