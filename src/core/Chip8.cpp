@@ -131,8 +131,35 @@ void Chip8::eightCategoryHandler(uint16_t instruction) {
     uint8_t selector = instruction & 0x000F;
 
     switch(selector) {
-        case 0x00:
-
+        case 0x0:
+            set(instruction);
+            break;
+        case 0x1:
+            binaryOr(instruction);
+            break;
+        case 0x2:
+            binaryAnd(instruction);
+            break;
+        case 0x3:
+            logicalXor(instruction);
+            break;
+        case 0x4:
+            add(instruction);
+            break;
+        case 0x5:
+            substract(instruction);
+            break;
+        case 0x6:
+            shiftRight(instruction);
+            break;
+        case 0x7:
+            substractInverted(instruction);
+            break;
+        case 0xE:
+            shiftLeft(instruction);
+            break;
+        default:
+            break;
     }
 }
 
@@ -205,3 +232,5 @@ void Chip8::logicalXor(uint16_t instruction) {}
 void Chip8::add(uint16_t instruction) {}
 void Chip8::substract(uint16_t instruction) {}
 void Chip8::substractInverted(uint16_t instruction) {}
+void Chip8::shiftRight(uint16_t instruction) {}
+void Chip8::shiftLeft(uint16_t instruction) {}

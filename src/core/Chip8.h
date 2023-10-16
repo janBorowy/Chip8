@@ -97,7 +97,8 @@ class Chip8 {
     void add(uint16_t instruction);
     void substract(uint16_t instruction);
     void substractInverted(uint16_t instruction);
-    void shift(uint16_t instruction);
+    void shiftRight(uint16_t instruction);
+    void shiftLeft(uint16_t instruction);
 
     static constexpr std::array<InstructionHandler, 16> handlers {
         &Chip8::zeroCategoryHandler,
