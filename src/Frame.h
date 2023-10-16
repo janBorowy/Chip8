@@ -14,7 +14,6 @@
 #define WINDOW_WIDTH 640
 #define WINDOW_HEIGHT 320
 #define SCREEN_REFRESH_FREQUENCY 60
-#define CHIP_CLOCK_SPEED 700 //TODO: make this configurable
 
 class RomFileTooLargeException: public std::runtime_error {
     public:
@@ -26,8 +25,11 @@ class Frame {
     std::unique_ptr<Chip8> chip8;
     std::unique_ptr<Screen> screen;
 
-    std::chrono::system_clock::time_point lastScreenUpdate;
-    std::chrono::system_clock::time_point lastChipExecution;
+    typedef std::chrono::steady_clock Clock;
+
+    static auto constexpr CHIP_CLOCK_PERIOD = std::chrono::milliseconds(1/700);
+
+    Clock::time_point lastScreenUpdate;
 
     void tryToInitializeSDL();
     std::array<char, CHIP8_MAX_PROGRAM_SIZE> loadRomFile(std::string filePath);
