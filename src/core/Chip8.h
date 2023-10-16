@@ -67,8 +67,10 @@ class Chip8 {
     void execute(uint16_t instruction);
     int getXIdx(uint16_t instruction);
     int getYIdx(uint16_t instruction);
-    uint8_t getXRegister(uint16_t instruction);
-    uint8_t getYRegister(uint16_t instruction);
+    uint8_t &getXRegister(uint16_t instruction);
+    uint8_t &getYRegister(uint16_t instruction);
+    uint8_t getXRegisterValue(uint16_t instruction);
+    uint8_t getYRegisterValue(uint16_t instruction);
     int getHandlerIdx(uint16_t instruction);
     std::vector<uint8_t> loadSprite(int height);
 
