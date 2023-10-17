@@ -36,7 +36,7 @@ void Frame::startLoop() {
         try {
             chip8->doNextCycle();
         } catch (InstructionNotImplemented e) {
-            std::cout << "Could not execute instruction: " << e.getOpcode() << std::endl;
+            std::cout << "Could not execute instruction: " << std::hex << e.getOpcode() << std::endl;
         }
 
         if(Clock::now() - lastScreenUpdate

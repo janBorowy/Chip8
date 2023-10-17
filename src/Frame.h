@@ -10,6 +10,7 @@
 #include <fstream>
 #include <stdexcept>
 #include <thread>
+#include <iomanip>
 
 #define WINDOW_WIDTH 640
 #define WINDOW_HEIGHT 320

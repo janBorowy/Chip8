@@ -2,22 +2,21 @@
 #include <cstring>
 
 
-Chip8::Chip8() {
+Chip8::Chip8():
+    programCounter(CHIP8_PROGRAM_BEGINNING_ADDRESS),
+    indexPointer(0),
+    stack(),
+    delayTimer(),
+    soundTimer(),
+    randomEngine(std::chrono::steady_clock::now().time_since_epoch().count()),
+    display(std::make_unique<Display>()) {
     initializeVariables();
     loadFont();
-    startTimers();
 }
 
 void Chip8::initializeVariables() {
     memset(memory, 0, sizeof(memory));
     memset(variables, 0, sizeof(variables));
-    programCounter = CHIP8_PROGRAM_BEGINNING_ADDRESS;
-    indexPointer = 0;
-    stack = std::stack<uint16_t>();
-    delayTimer = 0;
-    soundTimer = 0;
-
-    display = std::make_unique<Display>();
 }
 
 void Chip8::loadFont() {
@@ -42,10 +41,6 @@ void Chip8::execute(uint16_t instruction) {
     }
 
     (this->*handlers[handlerIdx])(instruction);
-}
-
-void Chip8::startTimers() {
-
 }
 
 PixelMatrix Chip8::peek() {
@@ -159,6 +154,7 @@ void Chip8::eightCategoryHandler(uint16_t instruction) {
             shiftLeft(instruction);
             break;
         default:
+            throw InstructionNotImplemented(instruction);
             break;
     }
 }
@@ -168,11 +164,61 @@ void Chip8::setIndex(uint16_t instruction) {
     indexPointer = address;
 }
 
+// TODO: ambiguous, make this configurable
+void Chip8::jumpWithOffset(uint16_t instruction) {
+    uint8_t address = instruction & 0x0FFF;
+    address += variables[0x0];
+    programCounter = address;
+}
+
+void Chip8::getRandomNumber(uint16_t instruction) {
+    int randomNumber = randomEngine() % 0xFF;
+    int valueToBinaryAnd = instruction & 0x00FF;
+    int vx = getXRegister(instruction);
+    vx = randomNumber & valueToBinaryAnd;
+}
+
 void Chip8::draw(uint16_t instruction) {
     int vx = getXRegisterValue(instruction) % CHIP8_DISPLAY_WIDTH;
     int vy = getYRegisterValue(instruction) % CHIP8_DISPLAY_HEIGTH;
     int height = instruction & 0x000F;
     variables[0xF] = display->drawSprite(vx, vy, loadSprite(height));
+}
+
+void Chip8::fCategoryHandler(uint16_t instruction) {
+    int selector = instruction & 0x00FF;
+
+    switch(selector) {
+        case 0x07:
+            setVxToDelayTimer(instruction);
+            break;
+        case 0x15:
+            setDelayTimer(instruction);
+            break;
+        case 0x18:
+            setSoundTimer(instruction);
+            break;
+        default:
+            throw InstructionNotImplemented(instruction);
+            break;
+    }
+}
+
+void Chip8::setVxToDelayTimer(uint16_t instruction) {
+    auto vx = getXRegister(instruction);
+    std::chrono::duration<float> timeLeftInSeconds
+        = delayTimer.getStatus();
+    vx = timeLeftInSeconds.count() * 60;
+}
+
+void Chip8::setDelayTimer(uint16_t instruction) {
+    auto vxValue = getXRegisterValue(instruction); 
+    delayTimer.setTime(std::chrono::milliseconds((vxValue) * 1000 / 60));
+}
+
+void Chip8::setSoundTimer(uint16_t instruction) {
+    auto vxValue = getXRegisterValue(instruction); 
+    soundTimer.setTime(std::chrono::milliseconds((vxValue) * 1000 / 60));
 }
 
 std::vector<uint8_t> Chip8::loadSprite(int height) {
@@ -227,10 +273,58 @@ void Chip8::binaryOr(uint16_t instruction) {
     vx = vx | vyValue;
 }
 
-void Chip8::binaryAnd(uint16_t instruction) {}
-void Chip8::logicalXor(uint16_t instruction) {}
-void Chip8::add(uint16_t instruction) {}
-void Chip8::substract(uint16_t instruction) {}
-void Chip8::substractInverted(uint16_t instruction) {}
-void Chip8::shiftRight(uint16_t instruction) {}
-void Chip8::shiftLeft(uint16_t instruction) {}
+void Chip8::binaryAnd(uint16_t instruction) {
+    auto vx = getXRegister(instruction);
+    auto vyValue = getYRegisterValue(instruction);
+    vx = vx & vyValue;
+}
+
+void Chip8::logicalXor(uint16_t instruction) {
+    auto vx = getXRegister(instruction);
+    auto vyValue = getYRegisterValue(instruction);
+    vx = vx ^ vyValue;
+}
+void Chip8::add(uint16_t instruction) {
+    auto vx = getXRegister(instruction);
+    auto vyValue = getYRegisterValue(instruction);
+    if ((int)vx + vyValue > 255) {
+        variables[0xF] = 1;
+    } else {
+        variables[0xF] = 0;
+    }
+    vx = vx + vyValue;
+}
+
+void Chip8::substract(uint16_t instruction) {
+    auto vx = getXRegister(instruction);
+    auto vyValue = getYRegisterValue(instruction);
+    if(vx > vyValue) {
+        variables[0xF] = 1;
+    } else {
+        variables[0xF] = 0;
+    }
+    vx = vx - vyValue;
+}
+
+void Chip8::substractInverted(uint16_t instruction) {
+    auto vx = getXRegister(instruction);
+    auto vyValue = getYRegisterValue(instruction);
+    if(vx < vyValue) {
+        variables[0xF] = 1;
+    } else {
+        variables[0xF] = 0;
+    }
+    vx = vyValue - vx;
+}
+
+void Chip8::shiftRight(uint16_t instruction) {
+    auto vx = getXRegister(instruction);
+    variables[0xF] = vx & 0x01;
+    vx = vx >> 1;
+}
+void Chip8::shiftLeft(uint16_t instruction) {
+    auto vx = getXRegister(instruction);
+    variables[0xF] = vx & 0x80;
+    vx = vx << 1;
+}
+

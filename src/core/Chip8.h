@@ -5,6 +5,9 @@
 #include "Display.h"
 #include <memory>
 #include <stdexcept>
+#include <random>
+#include <chrono>
+#include "Timer.h"
 
 constexpr unsigned int CHIP8_DISPLAY_WIDTH = 64;
 constexpr unsigned int CHIP8_DISPLAY_HEIGTH = 32;
@@ -33,9 +36,12 @@ class Chip8 {
     uint16_t programCounter;
     uint16_t indexPointer;
     std::stack<uint16_t> stack;
-    uint8_t delayTimer;
-    uint8_t soundTimer;
     uint8_t variables[16];
+
+    Timer delayTimer;
+    Timer soundTimer;
+
+    std::mt19937 randomEngine;
 
     typedef void(Chip8::*InstructionHandler)(uint16_t);
 
@@ -62,7 +68,6 @@ class Chip8 {
 
     void initializeVariables();
     void loadFont();
-    void startTimers();
     uint16_t fetchInstruction();
     void execute(uint16_t instruction);
     int getXIdx(uint16_t instruction);
@@ -85,7 +90,10 @@ class Chip8 {
     void setXRegister(uint16_t instruction);
     void addXRegister(uint16_t instruction);
     void setIndex(uint16_t instruction);
+    void jumpWithOffset(uint16_t instruction);
+    void getRandomNumber(uint16_t instruction);
     void draw(uint16_t instruction);
+    void fCategoryHandler(uint16_t instruction);
 
     void clearScreen();
     void returnFromSubroutine();
@@ -100,6 +108,10 @@ class Chip8 {
     void shiftRight(uint16_t instruction);
     void shiftLeft(uint16_t instruction);
 
+    void setVxToDelayTimer(uint16_t instruction);
+    void setDelayTimer(uint16_t instruction);
+    void setSoundTimer(uint16_t instruction);
+
     static constexpr std::array<InstructionHandler, 16> handlers {
         &Chip8::zeroCategoryHandler,
         &Chip8::jump,
@@ -109,14 +121,14 @@ class Chip8 {
         &Chip8::skipEqualRegisters,
         &Chip8::setXRegister,
         &Chip8::addXRegister,
-        nullptr,
+        &Chip8::eightCategoryHandler,
         &Chip8::skipNotEqualRegisters,
         &Chip8::setIndex,
-        nullptr,
-        nullptr,
+        &Chip8::jumpWithOffset,
+        &Chip8::getRandomNumber,
         &Chip8::draw,
         nullptr,
-        nullptr,
+        &Chip8::fCategoryHandler,
     };
 
     public:

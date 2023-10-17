@@ -14,6 +14,7 @@ add_executable(sandbox
     src/Screen.cpp
     src/core/Chip8.cpp
     src/core/Display.cpp
+    src/core/Timer.cpp
     src/Frame.cpp
     test/Chip8_test.cpp)
 
