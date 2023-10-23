@@ -8,6 +8,7 @@ Chip8::Chip8():
     stack(),
     delayTimer(),
     soundTimer(),
+    awaitingInput(CHIP8_NONE),
     randomEngine(std::chrono::steady_clock::now().time_since_epoch().count()),
     display(std::make_unique<Display>()) {
     initializeVariables();
@@ -82,15 +83,15 @@ void Chip8::callASubroutine(uint16_t instruction) {
 }
 
 void Chip8::skipEqualLiteral(uint16_t instruction) {
-    auto vx = getXRegisterValue(instruction);
+    auto vx = getXRegister(instruction);
     uint8_t val = instruction & 0x00FF;
     if(val == vx)
         programCounter += 2;
 }
 
 void Chip8::skipEqualRegisters(uint16_t instruction) {
-    auto vx = getXRegisterValue(instruction);
-    auto vy = getYRegisterValue(instruction);
+    auto vx = getXRegister(instruction);
+    auto vy = getYRegister(instruction);
 
     if (vx == vy) {
         programCounter += 2;
@@ -98,13 +99,13 @@ void Chip8::skipEqualRegisters(uint16_t instruction) {
 }
 
 void Chip8::skipNotEqualLietral(uint16_t instruction) {
-    auto vx = getXRegisterValue(instruction);
+    auto vx = getXRegister(instruction);
     uint8_t val = instruction & 0x00FF;
     if(val != vx)
         programCounter += 2;
 }
 
-void Chip8::setXRegister(uint16_t instruction) {
+void Chip8::setXRegisterToNN(uint16_t instruction) {
     int xIdx = getXIdx(instruction);
     variables[xIdx] = instruction & 0x00FF;
 }
@@ -115,8 +116,8 @@ void Chip8::addXRegister(uint16_t instruction) {
 }
 
 void Chip8::skipNotEqualRegisters(uint16_t instruction) {
-    auto vx = getXRegisterValue(instruction);
-    auto vy = getYRegisterValue(instruction);
+    auto vx = getXRegister(instruction);
+    auto vy = getYRegister(instruction);
     if(vx != vy) {
         programCounter += 2;
     }
@@ -179,14 +180,33 @@ void Chip8::getRandomNumber(uint16_t instruction) {
 }
 
 void Chip8::draw(uint16_t instruction) {
-    int vx = getXRegisterValue(instruction) % CHIP8_DISPLAY_WIDTH;
-    int vy = getYRegisterValue(instruction) % CHIP8_DISPLAY_HEIGTH;
+    int vx = getXRegister(instruction) % CHIP8_DISPLAY_WIDTH;
+    int vy = getYRegister(instruction) % CHIP8_DISPLAY_HEIGTH;
     int height = instruction & 0x000F;
     variables[0xF] = display->drawSprite(vx, vy, loadSprite(height));
 }
 
+void Chip8::eCategoryHandler(uint16_t instruction) {
+    uint16_t selector = instruction & 0x00FF;    
+    switch(selector) {
+        case 0x9E:
+            skipIfHeld(instruction);
+            break;
+        case 0xA1:
+            skipIfNotHeld(instruction);
+            break;
+    }
+}
+
+void Chip8::skipIfHeld(uint16_t instruction) {
+}
+
+void Chip8::skipIfNotHeld(uint16_t instruction) {
+
+}
+
 void Chip8::fCategoryHandler(uint16_t instruction) {
-    int selector = instruction & 0x00FF;
+    uint16_t selector = instruction & 0x00FF;
 
     switch(selector) {
         case 0x07:
@@ -197,6 +217,24 @@ void Chip8::fCategoryHandler(uint16_t instruction) {
             break;
         case 0x18:
             setSoundTimer(instruction);
+            break;
+        case 0x1E:
+            addToIndex(instruction);
+            break;
+        case 0x0A:
+            getKey(instruction);
+            break;
+        case 0x29:
+            getFontCharacter(instruction);
+            break;
+        case 0x33:
+            binaryCodedDecimalConversion(instruction);
+            break;
+        case 0x55:
+            storeRegistersToMemory(instruction);
+            break;
+        case 0x65:
+            loadRegistersFromMemory(instruction);
             break;
         default:
             throw InstructionNotImplemented(instruction);
@@ -212,13 +250,63 @@ void Chip8::setVxToDelayTimer(uint16_t instruction) {
 }
 
 void Chip8::setDelayTimer(uint16_t instruction) {
-    auto vxValue = getXRegisterValue(instruction); 
+    auto vxValue = getXRegister(instruction); 
     delayTimer.setTime(std::chrono::milliseconds((vxValue) * 1000 / 60));
 }
 
 void Chip8::setSoundTimer(uint16_t instruction) {
-    auto vxValue = getXRegisterValue(instruction); 
+    auto vxValue = getXRegister(instruction); 
     soundTimer.setTime(std::chrono::milliseconds((vxValue) * 1000 / 60));
+}
+
+void Chip8::addToIndex(uint16_t instruction) {
+    auto vxValue = getXRegister(instruction);
+    if(indexPointer + vxValue > 0xFFF) {
+        variables[0xF] = 1;
+    }
+    indexPointer += vxValue;
+}
+
+void Chip8::getKey(uint16_t instruction) {
+    if(awaitingInput != CHIP8_NONE) {
+        auto vx = getXRegister(instruction);
+        vx = awaitingInput & 0x00FF;
+        awaitingInput = CHIP8_NONE;
+    }
+    programCounter -= 2;
+}
+
+void Chip8::sendInput(CHIP8_KEY key) {
+    awaitingInput = key;
+}
+
+void Chip8::getFontCharacter(uint16_t instruction) {
+    auto vxValue = getXRegister(instruction);
+    indexPointer = CHIP8_FONT_BEGINNING_ADDRES + 5 * vxValue;
+}
+
+void Chip8::binaryCodedDecimalConversion(uint16_t instruction) {
+    auto vx = getXRegister(instruction);
+    memory[indexPointer] = vx / 100;
+    memory[indexPointer + 1] = (vx / 10) % 10;
+    memory[indexPointer + 2] = vx % 10;
+}
+
+void Chip8::storeRegistersToMemory(uint16_t instruction) {
+    auto x = getXIdx(instruction);
+    auto temporaryI = indexPointer;
+    for(uint8_t i = 0; i <= x; ++i) {
+        memory[temporaryI] = variables[i];
+        ++temporaryI;
+    }
+}
+
+void Chip8::loadRegistersFromMemory(uint16_t instruction) {
+    auto x = getXIdx(instruction);
+    auto temporaryI = indexPointer;
+    for(uint8_t i = 0; i <= x; ++i, ++temporaryI) {
+        variables[i] = memory[temporaryI];
+    }
 }
 
 std::vector<uint8_t> Chip8::loadSprite(int height) {
@@ -241,90 +329,89 @@ int Chip8::getYIdx(uint16_t instruction) {
     return (instruction & 0x00F0) >> 4;
 }
 
-uint8_t Chip8::getXRegisterValue(uint16_t instruction) {
+uint8_t Chip8::getXRegister(uint16_t instruction) {
     int x = getXIdx(instruction);
     return variables[x];
 }
 
-uint8_t Chip8::getYRegisterValue(uint16_t instruction) {
+uint8_t Chip8::getYRegister(uint16_t instruction) {
     int y = getYIdx(instruction);
     return variables[y];
 }
 
-uint8_t &Chip8::getXRegister(uint16_t instruction) {
-    auto x = getXIdx(instruction);
-    return variables[x];
-}
-
-uint8_t &Chip8::getYRegister(uint16_t instruction) {
-    auto y = getYIdx(instruction);
-    return variables[y];
-}
-
 void Chip8::set(uint16_t instruction) {
-    auto vx = getXRegister(instruction);
-    auto vyValue = getYRegisterValue(instruction);
-    vx = vyValue;
+    auto vy = getYRegister(instruction);
+    setXRegister(instruction, vy);
 }
 
 void Chip8::binaryOr(uint16_t instruction) {
     auto vx = getXRegister(instruction);
-    auto vyValue = getYRegisterValue(instruction);
-    vx = vx | vyValue;
+    auto vyValue = getYRegister(instruction);
+    setXRegister(instruction, vx | vyValue);
 }
 
 void Chip8::binaryAnd(uint16_t instruction) {
     auto vx = getXRegister(instruction);
-    auto vyValue = getYRegisterValue(instruction);
-    vx = vx & vyValue;
+    auto vyValue = getYRegister(instruction);
+    setXRegister(instruction, vx & vyValue);
 }
 
 void Chip8::logicalXor(uint16_t instruction) {
     auto vx = getXRegister(instruction);
-    auto vyValue = getYRegisterValue(instruction);
-    vx = vx ^ vyValue;
+    auto vyValue = getYRegister(instruction);
+    setXRegister(instruction, vx ^ vyValue);
 }
+
 void Chip8::add(uint16_t instruction) {
     auto vx = getXRegister(instruction);
-    auto vyValue = getYRegisterValue(instruction);
+    auto vyValue = getYRegister(instruction);
     if ((int)vx + vyValue > 255) {
         variables[0xF] = 1;
     } else {
         variables[0xF] = 0;
     }
-    vx = vx + vyValue;
+    setXRegister(instruction, vx + vyValue);
 }
 
 void Chip8::substract(uint16_t instruction) {
     auto vx = getXRegister(instruction);
-    auto vyValue = getYRegisterValue(instruction);
+    auto vyValue = getYRegister(instruction);
     if(vx > vyValue) {
         variables[0xF] = 1;
     } else {
         variables[0xF] = 0;
     }
-    vx = vx - vyValue;
+    setXRegister(instruction, vx - vyValue);
 }
 
 void Chip8::substractInverted(uint16_t instruction) {
     auto vx = getXRegister(instruction);
-    auto vyValue = getYRegisterValue(instruction);
+    auto vyValue = getYRegister(instruction);
     if(vx < vyValue) {
         variables[0xF] = 1;
     } else {
         variables[0xF] = 0;
     }
-    vx = vyValue - vx;
+    setXRegister(instruction, vyValue - vx);
 }
 
 void Chip8::shiftRight(uint16_t instruction) {
     auto vx = getXRegister(instruction);
     variables[0xF] = vx & 0x01;
-    vx = vx >> 1;
+    setXRegister(instruction, vx >> 1);
 }
 void Chip8::shiftLeft(uint16_t instruction) {
     auto vx = getXRegister(instruction);
     variables[0xF] = vx & 0x80;
-    vx = vx << 1;
+    setXRegister(instruction, vx << 1);
 }
 
+void Chip8::setXRegister(uint16_t instruction, uint8_t newValue) {
+    auto x = getXIdx(instruction);
+    variables[x] = newValue;
+}
+
+void Chip8::setYRegister(uint16_t instruction, uint8_t newValue) {
+    auto y = getYIdx(instruction);
+    variables[y] = newValue;
+}

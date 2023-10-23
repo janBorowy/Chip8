@@ -19,6 +19,26 @@ constexpr unsigned int CHIP8_MEMORY_SIZE = 4096;
 constexpr unsigned int CHIP8_MAX_PROGRAM_SIZE = 
     CHIP8_MEMORY_SIZE - CHIP8_PROGRAM_BEGINNING_ADDRESS;
 
+enum CHIP8_KEY {
+    CHIP8_0,
+    CHIP8_1,
+    CHIP8_2,
+    CHIP8_3,
+    CHIP8_4,
+    CHIP8_5,
+    CHIP8_6,
+    CHIP8_7,
+    CHIP8_8,
+    CHIP8_9,
+    CHIP8_A,
+    CHIP8_B,
+    CHIP8_C,
+    CHIP8_D,
+    CHIP8_E,
+    CHIP8_F,
+    CHIP8_NONE
+};
+
 class InstructionNotImplemented : public std::runtime_error {
     uint16_t opcode;
     public:
@@ -40,6 +60,8 @@ class Chip8 {
 
     Timer delayTimer;
     Timer soundTimer;
+
+    CHIP8_KEY awaitingInput;
 
     std::mt19937 randomEngine;
 
@@ -72,10 +94,10 @@ class Chip8 {
     void execute(uint16_t instruction);
     int getXIdx(uint16_t instruction);
     int getYIdx(uint16_t instruction);
-    uint8_t &getXRegister(uint16_t instruction);
-    uint8_t &getYRegister(uint16_t instruction);
-    uint8_t getXRegisterValue(uint16_t instruction);
-    uint8_t getYRegisterValue(uint16_t instruction);
+    uint8_t getXRegister(uint16_t instruction);
+    uint8_t getYRegister(uint16_t instruction);
+    void setXRegister(uint16_t instruction, uint8_t newValue);
+    void setYRegister(uint16_t instruction, uint8_t newValue);
     int getHandlerIdx(uint16_t instruction);
     std::vector<uint8_t> loadSprite(int height);
 
@@ -87,12 +109,13 @@ class Chip8 {
     void skipEqualRegisters(uint16_t instruction);
     void skipNotEqualRegisters(uint16_t instruction);
     void eightCategoryHandler(uint16_t instruction);
-    void setXRegister(uint16_t instruction);
+    void setXRegisterToNN(uint16_t instruction);
     void addXRegister(uint16_t instruction);
     void setIndex(uint16_t instruction);
     void jumpWithOffset(uint16_t instruction);
     void getRandomNumber(uint16_t instruction);
     void draw(uint16_t instruction);
+    void eCategoryHandler(uint16_t instruction);
     void fCategoryHandler(uint16_t instruction);
 
     void clearScreen();
@@ -108,9 +131,18 @@ class Chip8 {
     void shiftRight(uint16_t instruction);
     void shiftLeft(uint16_t instruction);
 
+    void skipIfHeld(uint16_t instruction);
+    void skipIfNotHeld(uint16_t instruction);
+
     void setVxToDelayTimer(uint16_t instruction);
     void setDelayTimer(uint16_t instruction);
     void setSoundTimer(uint16_t instruction);
+    void addToIndex(uint16_t instruction);
+    void getKey(uint16_t instruction);
+    void getFontCharacter(uint16_t instruction);
+    void binaryCodedDecimalConversion(uint16_t instruction); 
+    void storeRegistersToMemory(uint16_t instruction);
+    void loadRegistersFromMemory(uint16_t instruction);
 
     static constexpr std::array<InstructionHandler, 16> handlers {
         &Chip8::zeroCategoryHandler,
@@ -119,7 +151,7 @@ class Chip8 {
         &Chip8::skipEqualLiteral,
         &Chip8::skipNotEqualLietral,
         &Chip8::skipEqualRegisters,
-        &Chip8::setXRegister,
+        &Chip8::setXRegisterToNN,
         &Chip8::addXRegister,
         &Chip8::eightCategoryHandler,
         &Chip8::skipNotEqualRegisters,
@@ -136,4 +168,5 @@ class Chip8 {
         void doNextCycle();
         void loadRom(std::array<char, CHIP8_MAX_PROGRAM_SIZE> data);
         PixelMatrix peek();
+        void sendInput(CHIP8_KEY key);
 };
