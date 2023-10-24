@@ -21,6 +21,8 @@ include_directories(extern/imgui)
 include_directories(extern/imgui/backends)
 add_library(imgui ${imgui_SOURCE_FILES} ${imgui_BACKEND})
 
+include_directories(extern/argparse/include)
+
 target_link_libraries(chip8-emulator ${SDL2_LIBRARIES} imgui)
 
 include(FetchContent)

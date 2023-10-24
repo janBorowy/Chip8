@@ -30,7 +30,7 @@ class Frame {
     Chip8Rom loadRomFile(std::string filePath);
     long determineFileSize(std::string filePath);
     public:
-    Frame();
+    Frame(std::string romFilePath);
     ~Frame();
     void startLoop();
 };

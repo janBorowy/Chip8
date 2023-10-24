@@ -3,7 +3,6 @@
 Screen::Screen(int initialWidth, int initialHeight) {
     window = tryToCreateWindow(initialWidth, initialHeight);
     surface = SDL_GetWindowSurface(window);
-    tryToCreateRenderer();
     calculatePixelDimensions(initialWidth, initialHeight);
 }
 
@@ -66,15 +65,4 @@ void Screen::drawBackground() {
 
 Screen::~Screen() {
     SDL_DestroyWindow(window);
-}
-
-void Screen::tryToCreateRenderer() {
-    windowRenderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_PRESENTVSYNC | SDL_RENDERER_ACCELERATED);
-    if(windowRenderer == nullptr) {
-        printFailureMessage(SDL_GetError());
-    }
-}
-
-SDL_Renderer *Screen::getRenderer() {
-    return windowRenderer;
 }

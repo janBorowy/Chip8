@@ -11,11 +11,11 @@
 #include <memory>
 
 
-Frame::Frame() {
+Frame::Frame(std::string romFilePath) {
     chip8 = std::make_unique<Chip8>();
     tryToInitializeSDL();
     screen = std::make_unique<Screen>(WINDOW_WIDTH, WINDOW_HEIGHT);
-    auto romData = loadRomFile("/home/janek/workspace/chip-8-emulator/roms/test_opcode.ch8");
+    auto romData = loadRomFile(romFilePath);
     chip8->loadRom(romData);
 }
 
