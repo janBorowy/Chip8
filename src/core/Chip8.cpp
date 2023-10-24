@@ -269,8 +269,7 @@ void Chip8::addToIndex(uint16_t instruction) {
 
 void Chip8::getKey(uint16_t instruction) {
     if(awaitingInput != CHIP8_NONE) {
-        auto vx = getXRegister(instruction);
-        vx = awaitingInput & 0x00FF;
+        setXRegister(instruction, awaitingInput & 0x00FF);
         awaitingInput = CHIP8_NONE;
     }
     programCounter -= 2;
