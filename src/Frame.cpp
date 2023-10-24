@@ -63,6 +63,9 @@ Chip8Rom Frame::loadRomFile(std::string filePath) {
         throw RomFileTooLargeException();
     }
     std::ifstream file(filePath);
+    if(!file.good()) {
+        throw InvalidFileException();
+    }
     Chip8Rom data;
     int i = 0;
     while(file.good()) {

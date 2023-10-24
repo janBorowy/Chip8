@@ -364,45 +364,52 @@ void Chip8::logicalXor(uint16_t instruction) {
 void Chip8::add(uint16_t instruction) {
     auto vx = getXRegister(instruction);
     auto vyValue = getYRegister(instruction);
-    if ((int)vx + vyValue > 255) {
+    auto overflowed = (int)vx + vyValue > 255;
+    setXRegister(instruction, vx + vyValue);
+    if (overflowed) {
         variables[0xF] = 1;
     } else {
         variables[0xF] = 0;
     }
-    setXRegister(instruction, vx + vyValue);
 }
 
 void Chip8::substract(uint16_t instruction) {
     auto vx = getXRegister(instruction);
     auto vyValue = getYRegister(instruction);
-    if(vx > vyValue) {
-        variables[0xF] = 1;
-    } else {
-        variables[0xF] = 0;
-    }
+    auto underflowed = vx < vyValue;
     setXRegister(instruction, vx - vyValue);
+    if(underflowed) {
+        variables[0xF] = 0;
+    } else {
+        variables[0xF] = 1;
+    }
 }
 
 void Chip8::substractInverted(uint16_t instruction) {
     auto vx = getXRegister(instruction);
     auto vyValue = getYRegister(instruction);
-    if(vx < vyValue) {
-        variables[0xF] = 1;
-    } else {
-        variables[0xF] = 0;
-    }
+    auto underflowed = vx > vyValue;
     setXRegister(instruction, vyValue - vx);
+    if(underflowed) {
+        variables[0xF] = 0;
+    } else {
+        variables[0xF] = 1;
+    }
 }
 
 void Chip8::shiftRight(uint16_t instruction) {
     auto vx = getXRegister(instruction);
-    variables[0xF] = vx & 0x01;
+    auto shiftedBit = vx & 0x01;
     setXRegister(instruction, vx >> 1);
+    variables[0xF] = shiftedBit;
 }
+
 void Chip8::shiftLeft(uint16_t instruction) {
     auto vx = getXRegister(instruction);
-    variables[0xF] = vx & 0x80;
-    setXRegister(instruction, vx << 1);
+    auto shiftedBit = (vx & 0x80) >> 7;
+    vx = vx << 1;
+    setXRegister(instruction, vx & 0x00FF);
+    variables[0xF] = shiftedBit;
 }
 
 void Chip8::setXRegister(uint16_t instruction, uint8_t newValue) {

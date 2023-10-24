@@ -26,7 +26,7 @@ int main(int argc, char *argv[]) {
     std::unique_ptr<Frame> frame;
     try {
         frame = std::make_unique<Frame>(romFilePath);
-    } catch(RomFileTooLargeException &e) {
+    } catch(std::runtime_error &e) {
         std::cout << e.what() << std::endl;
         std::exit(1);
     }

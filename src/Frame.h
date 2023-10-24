@@ -15,6 +15,11 @@ class RomFileTooLargeException: public std::runtime_error {
     RomFileTooLargeException():runtime_error("Rom file exceeded max size"){}
 };
 
+class InvalidFileException: public std::runtime_error {
+    public:
+    InvalidFileException():runtime_error("File does not exist or is corrupted"){}
+};
+
 class Frame {
 
     std::unique_ptr<Chip8> chip8;
