@@ -5,18 +5,23 @@ set(CMAKE_CXX_STANDARD_REQUIRED 17)
 set(CMAKE_CXX_STANDARD 17)
 
 file(GLOB CORE_SOURCE_FILES src/core/*.cpp)
+file(GLOB UI_SOURCE_FILES src/ui/*.cpp)
 file(GLOB OTHER_SOURCE_FILES src/*.cpp)
 include_directories(src)
-add_executable(chip8-emulator ${CORE_SOURCE_FILES} ${OTHER_SOURCE_FILES})
+add_executable(chip8-emulator ${CORE_SOURCE_FILES} ${UI_SOURCE_FILES} ${OTHER_SOURCE_FILES})
 
 find_package(SDL2 REQUIRED)
 include_directories(
     ${SDL2_INCLUDE_DIRS})
 
-target_link_libraries(chip8-emulator
-    ${SDL2_LIBRARIES}
-    ${SDL2_IMAGE_LIBRARIES}
-)
+file(GLOB imgui_SOURCE_FILES extern/imgui/*.cpp)
+set(imgui_BACKEND extern/imgui/backends/imgui_impl_sdl2.cpp
+    extern/imgui/backends/imgui_impl_sdlrenderer2.cpp)
+include_directories(extern/imgui)
+include_directories(extern/imgui/backends)
+add_library(imgui ${imgui_SOURCE_FILES} ${imgui_BACKEND})
+
+target_link_libraries(chip8-emulator ${SDL2_LIBRARIES} imgui)
 
 include(FetchContent)
 FetchContent_Declare(

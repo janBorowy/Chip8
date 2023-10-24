@@ -1,20 +1,14 @@
 #pragma once 
 #include "core/Chip8.h"
-#include <memory>
 #include "Screen.h"
-#include <iostream>
-#include <SDL2/SDL.h>
-#include <chrono>
-#include <vector>
-#include <string>
-#include <fstream>
-#include <stdexcept>
-#include <thread>
-#include <iomanip>
+
+
 
 #define WINDOW_WIDTH 640
 #define WINDOW_HEIGHT 320
 #define SCREEN_REFRESH_FREQUENCY 60
+
+typedef std::array<char, CHIP8_MAX_PROGRAM_SIZE> Chip8Rom;
 
 class RomFileTooLargeException: public std::runtime_error {
     public:
@@ -33,7 +27,7 @@ class Frame {
     Clock::time_point lastScreenUpdate;
 
     void tryToInitializeSDL();
-    std::array<char, CHIP8_MAX_PROGRAM_SIZE> loadRomFile(std::string filePath);
+    Chip8Rom loadRomFile(std::string filePath);
     long determineFileSize(std::string filePath);
     public:
     Frame();

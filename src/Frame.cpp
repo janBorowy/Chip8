@@ -1,4 +1,14 @@
 #include "Frame.h"
+#include <chrono>
+#include <vector>
+#include <string>
+#include <fstream>
+#include <stdexcept>
+#include <thread>
+#include <iomanip>
+#include <iostream>
+#include <SDL2/SDL.h>
+#include <memory>
 
 
 Frame::Frame() {
@@ -48,12 +58,12 @@ void Frame::startLoop() {
     }
 }
 
-std::array<char, CHIP8_MAX_PROGRAM_SIZE> Frame::loadRomFile(std::string filePath) {
+Chip8Rom Frame::loadRomFile(std::string filePath) {
     if(determineFileSize(filePath) > CHIP8_MAX_PROGRAM_SIZE) {
         throw RomFileTooLargeException();
     }
     std::ifstream file(filePath);
-    std::array<char, CHIP8_MAX_PROGRAM_SIZE> data;
+    Chip8Rom data;
     int i = 0;
     while(file.good()) {
         data[i] = file.get();
