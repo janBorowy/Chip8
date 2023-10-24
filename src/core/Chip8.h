@@ -8,6 +8,7 @@
 #include <random>
 #include <chrono>
 #include "Timer.h"
+#include <unordered_map>
 
 constexpr unsigned int CHIP8_DISPLAY_WIDTH = 64;
 constexpr unsigned int CHIP8_DISPLAY_HEIGTH = 32;
@@ -35,8 +36,7 @@ enum CHIP8_KEY {
     CHIP8_C,
     CHIP8_D,
     CHIP8_E,
-    CHIP8_F,
-    CHIP8_NONE
+    CHIP8_F
 };
 
 class InstructionNotImplemented : public std::runtime_error {
@@ -50,6 +50,8 @@ class InstructionNotImplemented : public std::runtime_error {
         }
 };
 
+typedef std::unordered_map<CHIP8_KEY, bool> Chip8Keyboard;
+
 class Chip8 {
 
     uint8_t memory[CHIP8_MEMORY_SIZE];
@@ -61,7 +63,7 @@ class Chip8 {
     Timer delayTimer;
     Timer soundTimer;
 
-    CHIP8_KEY awaitingInput;
+    const Chip8Keyboard &keyboard;
 
     std::mt19937 randomEngine;
 
@@ -159,14 +161,13 @@ class Chip8 {
         &Chip8::jumpWithOffset,
         &Chip8::getRandomNumber,
         &Chip8::draw,
-        nullptr,
+        &Chip8::eCategoryHandler,
         &Chip8::fCategoryHandler,
     };
 
     public:
-        Chip8();
+        Chip8(const Chip8Keyboard &keyboard);
         void doNextCycle();
         void loadRom(std::array<char, CHIP8_MAX_PROGRAM_SIZE> data);
         PixelMatrix peek();
-        void sendInput(CHIP8_KEY key);
 };

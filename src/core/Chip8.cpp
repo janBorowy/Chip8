@@ -1,16 +1,17 @@
 #include "Chip8.h"
 #include <cstring>
+#include <algorithm>
 
 
-Chip8::Chip8():
+Chip8::Chip8(const Chip8Keyboard &_keyboard):
     programCounter(CHIP8_PROGRAM_BEGINNING_ADDRESS),
     indexPointer(0),
     stack(),
     delayTimer(),
     soundTimer(),
-    awaitingInput(CHIP8_NONE),
     randomEngine(std::chrono::steady_clock::now().time_since_epoch().count()),
-    display(std::make_unique<Display>()) {
+    display(std::make_unique<Display>()),
+    keyboard(_keyboard) {
     initializeVariables();
     loadFont();
 }
@@ -199,10 +200,17 @@ void Chip8::eCategoryHandler(uint16_t instruction) {
 }
 
 void Chip8::skipIfHeld(uint16_t instruction) {
+    auto vx = getXRegister(instruction);
+    if(keyboard.at((CHIP8_KEY)vx)) {
+        programCounter += 2;
+    }
 }
 
 void Chip8::skipIfNotHeld(uint16_t instruction) {
-
+    auto vx = getXRegister(instruction);
+    if(!keyboard.at((CHIP8_KEY)vx)) {
+        programCounter += 2;
+    }
 }
 
 void Chip8::fCategoryHandler(uint16_t instruction) {
@@ -268,15 +276,13 @@ void Chip8::addToIndex(uint16_t instruction) {
 }
 
 void Chip8::getKey(uint16_t instruction) {
-    if(awaitingInput != CHIP8_NONE) {
-        setXRegister(instruction, awaitingInput & 0x00FF);
-        awaitingInput = CHIP8_NONE;
+    for(auto pair: keyboard) {
+        if(pair.second == true) {
+            setXRegister(instruction, pair.first);
+            return;
+        }
     }
     programCounter -= 2;
-}
-
-void Chip8::sendInput(CHIP8_KEY key) {
-    awaitingInput = key;
 }
 
 void Chip8::getFontCharacter(uint16_t instruction) {

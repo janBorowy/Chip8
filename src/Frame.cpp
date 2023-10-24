@@ -11,12 +11,14 @@
 #include <memory>
 
 
-Frame::Frame(std::string romFilePath) {
-    chip8 = std::make_unique<Chip8>();
+Frame::Frame(std::string romFilePath):
+    chip8(std::make_unique<Chip8>(keyboard)),
+    shouldQuit(false) {
     tryToInitializeSDL();
     screen = std::make_unique<Screen>(WINDOW_WIDTH, WINDOW_HEIGHT);
     auto romData = loadRomFile(romFilePath);
     chip8->loadRom(romData);
+    initializeKeyboard();
 }
 
 Frame::~Frame() {
@@ -33,16 +35,10 @@ void Frame::tryToInitializeSDL() {
 
 
 void Frame::startLoop() {
-    SDL_Event e;
-    bool quit;
     lastScreenUpdate = Clock::now();
-    while(!quit) {
+    while(!shouldQuit) {
         auto frameStarted = Clock::now();
-        while(SDL_PollEvent(&e)) {
-            if(e.type == SDL_QUIT) {
-                quit = true;
-            }
-        }
+        processEventQueue();
         try {
             chip8->doNextCycle();
         } catch (InstructionNotImplemented e) {
@@ -81,4 +77,33 @@ long Frame::determineFileSize(std::string filePath) {
     long size = file.tellg();
     file.close();
     return size;
+}
+
+void Frame::processEventQueue() {
+    SDL_Event e;
+    while(SDL_PollEvent(&e)) {
+        if(e.type == SDL_QUIT) {
+            shouldQuit = true;
+        } else if(e.type == SDL_KEYDOWN) {
+            if(!isChip8Key(e))
+                continue;
+            keyboard[sdlToChip8KeyMap[e.key.keysym.scancode]] = true;
+        } else if(e.type == SDL_KEYUP) {
+            if(!isChip8Key(e))
+                continue;
+            keyboard[sdlToChip8KeyMap[e.key.keysym.scancode]] = false;
+        }
+    }
+}
+bool Frame::isChip8Key(const SDL_Event &e) const {
+    auto scancode = e.key.keysym.scancode;
+    if(sdlToChip8KeyMap.find(scancode) != sdlToChip8KeyMap.end())
+        return true;
+    return false;
+}
+
+void Frame::initializeKeyboard() {
+    for(CHIP8_KEY key = CHIP8_0; key < CHIP8_F + 1; key = static_cast<CHIP8_KEY>(key + 1)) {
+        keyboard.insert({key, false});
+    }
 }
