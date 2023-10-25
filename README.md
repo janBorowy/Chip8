@@ -23,9 +23,9 @@ cmake ..
 cmake --build .
 ```
 # Usage
-To run a rom `example.ch8`:
-`./chip8-emulator example.ch8`
-To run a rom `schip-example.ch8` with SUPER-CHIP 1.0 compatibility mode:
+To run a rom `example.ch8`:\
+`./chip8-emulator example.ch8`\
+To run a rom `schip-example.ch8` with SUPER-CHIP 1.0 compatibility mode:\
 `./chip8-emulator -c schip schip-example.ch8`
 
 # Compatibility modes
