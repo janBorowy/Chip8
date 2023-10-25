@@ -17,7 +17,7 @@ void SChip::shiftLeft(uint16_t instruction) {
 }
 
 void SChip::jumpWithOffset(uint16_t instruction) {
-    uint8_t address = instruction & 0x0FFF;
+    uint16_t address = instruction & 0x0FFF;
     address += getXRegister(instruction);
     programCounter = address;
 }
@@ -36,4 +36,22 @@ void SChip::loadRegistersFromMemory(uint16_t instruction) {
     for(uint8_t i = 0; i <= x; ++i, ++temporaryI) {
         variables[i] = memory[temporaryI];
     }
+}
+
+void SChip::binaryOr(uint16_t instruction) {
+    auto vx = getXRegister(instruction);
+    auto vyValue = getYRegister(instruction);
+    setXRegister(instruction, vx | vyValue);
+}
+
+void SChip::binaryAnd(uint16_t instruction) {
+    auto vx = getXRegister(instruction);
+    auto vyValue = getYRegister(instruction);
+    setXRegister(instruction, vx & vyValue);
+}
+
+void SChip::logicalXor(uint16_t instruction) {
+    auto vx = getXRegister(instruction);
+    auto vyValue = getYRegister(instruction);
+    setXRegister(instruction, vx ^ vyValue);
 }

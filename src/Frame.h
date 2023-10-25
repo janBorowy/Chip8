@@ -48,7 +48,7 @@ class Frame {
 
     };
 
-    static auto constexpr CHIP_CLOCK_PERIOD = std::chrono::milliseconds(1/700);
+    static auto constexpr CHIP_CLOCK_PERIOD = std::chrono::seconds(1/700);
 
     Clock::time_point lastScreenUpdate;
 

@@ -125,9 +125,9 @@ class Chip8 {
     void returnFromSubroutine();
 
     void set(uint16_t instruction);
-    void binaryOr(uint16_t instruction);
-    void binaryAnd(uint16_t instruction);
-    void logicalXor(uint16_t instruction);
+    virtual void binaryOr(uint16_t instruction) = 0;
+    virtual void binaryAnd(uint16_t instruction) = 0;
+    virtual void logicalXor(uint16_t instruction) = 0;
     void add(uint16_t instruction);
     void substract(uint16_t instruction);
     void substractInverted(uint16_t instruction);

@@ -17,7 +17,7 @@ void OriginalChip8::shiftLeft(uint16_t instruction) {
 }
 
 void OriginalChip8::jumpWithOffset(uint16_t instruction) {
-    uint8_t address = instruction & 0x0FFF;
+    uint16_t address = instruction & 0x0FFF;
     address += variables[0x0];
     programCounter = address;
 }
@@ -34,4 +34,25 @@ void OriginalChip8::loadRegistersFromMemory(uint16_t instruction) {
     for(uint8_t i = 0; i <= x; ++i, ++indexPointer) {
         variables[i] = memory[indexPointer];
     }
+}
+
+void OriginalChip8::binaryOr(uint16_t instruction) {
+    auto vx = getXRegister(instruction);
+    auto vyValue = getYRegister(instruction);
+    setXRegister(instruction, vx | vyValue);
+    variables[0xF] = 0;
+}
+
+void OriginalChip8::binaryAnd(uint16_t instruction) {
+    auto vx = getXRegister(instruction);
+    auto vyValue = getYRegister(instruction);
+    setXRegister(instruction, vx & vyValue);
+    variables[0xF] = 0;
+}
+
+void OriginalChip8::logicalXor(uint16_t instruction) {
+    auto vx = getXRegister(instruction);
+    auto vyValue = getYRegister(instruction);
+    setXRegister(instruction, vx ^ vyValue);
+    variables[0xF] = 0;
 }

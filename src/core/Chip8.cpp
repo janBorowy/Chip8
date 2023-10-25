@@ -244,20 +244,21 @@ void Chip8::fCategoryHandler(uint16_t instruction) {
 }
 
 void Chip8::setVxToDelayTimer(uint16_t instruction) {
-    auto vx = getXRegister(instruction);
     std::chrono::duration<float> timeLeftInSeconds
         = delayTimer.getStatus();
-    vx = timeLeftInSeconds.count() * 60;
+    setXRegister(instruction, timeLeftInSeconds.count() * 60);
 }
 
 void Chip8::setDelayTimer(uint16_t instruction) {
-    auto vxValue = getXRegister(instruction); 
-    delayTimer.setTime(std::chrono::milliseconds((vxValue) * 1000 / 60));
+    auto vx = getXRegister(instruction); 
+    delayTimer.setTime(std::chrono::milliseconds((vx) * 1000 / 60));
+    delayTimer.startTimer();
 }
 
 void Chip8::setSoundTimer(uint16_t instruction) {
-    auto vxValue = getXRegister(instruction); 
-    soundTimer.setTime(std::chrono::milliseconds((vxValue) * 1000 / 60));
+    auto vx = getXRegister(instruction); 
+    soundTimer.setTime(std::chrono::milliseconds((vx) * 1000 / 60));
+    delayTimer.startTimer();
 }
 
 void Chip8::addToIndex(uint16_t instruction) {
@@ -323,24 +324,6 @@ uint8_t Chip8::getYRegister(uint16_t instruction) {
 void Chip8::set(uint16_t instruction) {
     auto vy = getYRegister(instruction);
     setXRegister(instruction, vy);
-}
-
-void Chip8::binaryOr(uint16_t instruction) {
-    auto vx = getXRegister(instruction);
-    auto vyValue = getYRegister(instruction);
-    setXRegister(instruction, vx | vyValue);
-}
-
-void Chip8::binaryAnd(uint16_t instruction) {
-    auto vx = getXRegister(instruction);
-    auto vyValue = getYRegister(instruction);
-    setXRegister(instruction, vx & vyValue);
-}
-
-void Chip8::logicalXor(uint16_t instruction) {
-    auto vx = getXRegister(instruction);
-    auto vyValue = getYRegister(instruction);
-    setXRegister(instruction, vx ^ vyValue);
 }
 
 void Chip8::add(uint16_t instruction) {
