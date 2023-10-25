@@ -10,9 +10,8 @@
 #include <SDL2/SDL.h>
 #include <memory>
 
-
-Frame::Frame(std::string romFilePath):
-    chip8(std::make_unique<Chip8>(keyboard)),
+Frame::Frame(std::string romFilePath, CHIP8_IMPLEMENTATION impl):
+    chip8(std::unique_ptr<Chip8>(Chip8Factory::make(impl, keyboard))),
     shouldQuit(false) {
     tryToInitializeSDL();
     screen = std::make_unique<Screen>(WINDOW_WIDTH, WINDOW_HEIGHT);

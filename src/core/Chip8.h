@@ -54,6 +54,7 @@ typedef std::unordered_map<CHIP8_KEY, bool> Chip8Keyboard;
 
 class Chip8 {
 
+    protected:
     uint8_t memory[CHIP8_MEMORY_SIZE];
     uint16_t programCounter;
     uint16_t indexPointer;
@@ -114,7 +115,7 @@ class Chip8 {
     void setXRegisterToNN(uint16_t instruction);
     void addXRegister(uint16_t instruction);
     void setIndex(uint16_t instruction);
-    void jumpWithOffset(uint16_t instruction);
+    virtual void jumpWithOffset(uint16_t instruction) = 0;
     void getRandomNumber(uint16_t instruction);
     void draw(uint16_t instruction);
     void eCategoryHandler(uint16_t instruction);
@@ -130,8 +131,8 @@ class Chip8 {
     void add(uint16_t instruction);
     void substract(uint16_t instruction);
     void substractInverted(uint16_t instruction);
-    void shiftRight(uint16_t instruction);
-    void shiftLeft(uint16_t instruction);
+    virtual void shiftRight(uint16_t instruction) = 0;
+    virtual void shiftLeft(uint16_t instruction) = 0;
 
     void skipIfHeld(uint16_t instruction);
     void skipIfNotHeld(uint16_t instruction);
@@ -143,8 +144,8 @@ class Chip8 {
     void getKey(uint16_t instruction);
     void getFontCharacter(uint16_t instruction);
     void binaryCodedDecimalConversion(uint16_t instruction); 
-    void storeRegistersToMemory(uint16_t instruction);
-    void loadRegistersFromMemory(uint16_t instruction);
+    virtual void storeRegistersToMemory(uint16_t instruction) = 0;
+    virtual void loadRegistersFromMemory(uint16_t instruction) = 0;
 
     static constexpr std::array<InstructionHandler, 16> handlers {
         &Chip8::zeroCategoryHandler,

@@ -2,6 +2,7 @@
 #include "core/Chip8.h"
 #include "Screen.h"
 #include <unordered_map>
+#include "core/Chip8Factory.h"
 
 #define WINDOW_WIDTH 640
 #define WINDOW_HEIGHT 320
@@ -58,7 +59,8 @@ class Frame {
     void initializeKeyboard();
     bool isChip8Key(const SDL_Event &e) const;
     public:
-    Frame(std::string romFilePath);
+    Frame(std::string romFilePath,
+        CHIP8_IMPLEMENTATION impl = CHIP8_IMPLEMENTATION::ORIGINAL_CHIP8);
     ~Frame();
     void startLoop();
 };

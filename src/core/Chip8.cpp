@@ -166,13 +166,6 @@ void Chip8::setIndex(uint16_t instruction) {
     indexPointer = address;
 }
 
-// TODO: ambiguous, make this configurable
-void Chip8::jumpWithOffset(uint16_t instruction) {
-    uint8_t address = instruction & 0x0FFF;
-    address += variables[0x0];
-    programCounter = address;
-}
-
 void Chip8::getRandomNumber(uint16_t instruction) {
     int randomNumber = randomEngine() % 0xFF;
     int valueToBinaryAnd = instruction & 0x00FF;
@@ -297,23 +290,6 @@ void Chip8::binaryCodedDecimalConversion(uint16_t instruction) {
     memory[indexPointer + 2] = vx % 10;
 }
 
-void Chip8::storeRegistersToMemory(uint16_t instruction) {
-    auto x = getXIdx(instruction);
-    auto temporaryI = indexPointer;
-    for(uint8_t i = 0; i <= x; ++i) {
-        memory[temporaryI] = variables[i];
-        ++temporaryI;
-    }
-}
-
-void Chip8::loadRegistersFromMemory(uint16_t instruction) {
-    auto x = getXIdx(instruction);
-    auto temporaryI = indexPointer;
-    for(uint8_t i = 0; i <= x; ++i, ++temporaryI) {
-        variables[i] = memory[temporaryI];
-    }
-}
-
 std::vector<uint8_t> Chip8::loadSprite(int height) {
     std::vector<uint8_t> sprite;
     for(int i = 0; i < height; ++i) {
@@ -401,21 +377,6 @@ void Chip8::substractInverted(uint16_t instruction) {
     } else {
         variables[0xF] = 1;
     }
-}
-
-void Chip8::shiftRight(uint16_t instruction) {
-    auto vx = getXRegister(instruction);
-    auto shiftedBit = vx & 0x01;
-    setXRegister(instruction, vx >> 1);
-    variables[0xF] = shiftedBit;
-}
-
-void Chip8::shiftLeft(uint16_t instruction) {
-    auto vx = getXRegister(instruction);
-    auto shiftedBit = (vx & 0x80) >> 7;
-    vx = vx << 1;
-    setXRegister(instruction, vx & 0x00FF);
-    variables[0xF] = shiftedBit;
 }
 
 void Chip8::setXRegister(uint16_t instruction, uint8_t newValue) {
