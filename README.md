@@ -40,6 +40,10 @@ Available compatibility modes:\
 format: (argument) - (compatible interpreter)\
 default - COSMAC VIP\
 schip - SUPER-CHIP 1.0
+
 # Sources
 - Main guide and inspiration - https://tobiasvl.github.io/blog/write-a-chip-8-emulator/
 - Source of information about quirks - https://chip-8.github.io/extensions/
+
+# Known issues
+- Some games will run too fast - chip cycle frequency should be configurable 
