@@ -169,8 +169,7 @@ void Chip8::setIndex(uint16_t instruction) {
 void Chip8::getRandomNumber(uint16_t instruction) {
     int randomNumber = randomEngine() % 0xFF;
     int valueToBinaryAnd = instruction & 0x00FF;
-    int vx = getXRegister(instruction);
-    vx = randomNumber & valueToBinaryAnd;
+    setXRegister(instruction, randomNumber & valueToBinaryAnd);
 }
 
 void Chip8::draw(uint16_t instruction) {
